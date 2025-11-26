@@ -1,4 +1,6 @@
+import os
 import gdown
+import zipfile
 
 
 def download_from_gdrive(link, output_path=None):
@@ -32,3 +34,23 @@ def download_from_gdrive(link, output_path=None):
 
     except Exception as e:
         print(f"Error downloading file: {e}")
+
+
+def unzip_file(zip_path: str, extract_to: str):
+    """
+    Extracts all contents of a ZIP file into the destination folder.
+
+    Args:
+        zip_path (str): Path to the zip file.
+        extract_to (str): Directory where files will be extracted.
+    """
+    if not os.path.exists(zip_path):
+        raise FileNotFoundError(f"Zip file not found: {zip_path}")
+
+    if not zipfile.is_zipfile(zip_path):
+        raise ValueError(f"Not a valid zip file: {zip_path}")
+
+    os.makedirs(extract_to, exist_ok=True)
+
+    with zipfile.ZipFile(zip_path, "r") as zip_ref:
+        zip_ref.extractall(extract_to)
