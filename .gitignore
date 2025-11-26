@@ -1,0 +1,17 @@
+# Virtual Environments
+venv/
+.venv/
+
+# Python Cache / Bytecode
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pdb
+*.pkl
+
+# Logs
+logs/
+outputs/
+
+.vscode/
