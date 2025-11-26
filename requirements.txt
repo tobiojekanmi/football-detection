@@ -1,4 +1,5 @@
 albumentationsx==2.0.13
+gdown==5.2.0
 matplotlib==3.10.7
 numpy==2.2.6
 pandas==2.3.3
