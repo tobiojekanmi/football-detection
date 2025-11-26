@@ -6,7 +6,7 @@ from PIL import Image
 from typing import Tuple, List, Optional
 
 import torch
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
 
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
@@ -161,3 +161,22 @@ class FootballDataset(Dataset):
         )
 
         return image_path, image, bbox
+
+
+@dataclass
+class FootballDataLoaderConfig:
+    batch_size: int = 8
+    shuffle: bool = True
+    num_workers: int = 4
+    pin_memory: bool = True
+
+
+class FootballDataLoader(DataLoader):
+    def __init__(self, config: FootballDataLoaderConfig, dataset: FootballDataset):
+        super().__init__(
+            dataset,
+            batch_size=config.batch_size,
+            shuffle=config.shuffle,
+            num_workers=config.num_workers,
+            pin_memory=config.pin_memory,
+        )
