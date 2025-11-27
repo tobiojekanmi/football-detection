@@ -14,10 +14,23 @@ from albumentations.pytorch import ToTensorV2
 
 @dataclass
 class FootballDatasetConfig:
+    """
+    Configuration for the football detection dataset.
+    """
+
+    # Base directory containing the dataset
     root_data_path: str
+
+    # Dataset split category: "train", "val", or "test"
     dataset_category: str = "train"
-    image_size: Optional[Tuple[int, int]] = None  # (H, W)
+
+    # Target image size (Height, Width). If None, keep original size.
+    image_size: Optional[Tuple[int, int]] = None
+
+    # Whether to normalize image pixel values (mean/std if True, to [0, 1] if False)
     normalize_image: bool = True
+
+    # Whether to normalize bounding boxes (i.e., convert to 0–1 range)
     normalize_bbox: bool = True
 
 
@@ -165,9 +178,20 @@ class FootballDataset(Dataset):
 
 @dataclass
 class FootballDataLoaderConfig:
+    """
+    Configuration for the football detection dataloader.
+    """
+
+    # Number of samples per batch
     batch_size: int = 8
+
+    # Whether to shuffle the dataset each epoch
     shuffle: bool = True
+
+    # Number of worker processes for data loading
     num_workers: int = 4
+
+    # Whether to use pinned memory to speed up host-to-GPU transfers
     pin_memory: bool = True
 
 
