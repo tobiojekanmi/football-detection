@@ -1,6 +1,8 @@
 import os
 import gdown
 import zipfile
+import json
+from typing import List, Optional
 
 import torch
 import numpy as np
@@ -9,7 +11,7 @@ from tqdm import tqdm
 from PIL import Image
 import matplotlib.pyplot as plt
 
-from typing import List, Optional
+from modules.experiment import ExperimentConfig
 
 
 def download_from_gdrive(link, output_path=None):
@@ -183,3 +185,39 @@ def plot_one(
         plt.title(title)
     plt.legend()
     plt.show()
+
+
+def load_config(config_path: str) -> ExperimentConfig:
+    """
+    Helper function to load the experiment config json file
+    """
+
+    # Load experiment config
+    with open(config_path) as f:
+        data = json.load(f)
+
+    return dict_to_dataclass(ExperimentConfig, data)
+
+
+def dict_to_dataclass(cls, data):
+    """
+    Helper function to convert nested dictionaries to dataclasses
+    """
+    if not isinstance(data, dict):
+        return data
+
+    # Get the field types from the dataclass
+    field_types = {f.name: f.type for f in cls.__dataclass_fields__.values()}
+
+    kwargs = {}
+    for field_name, field_type in field_types.items():
+        if field_name in data:
+            value = data[field_name]
+
+            # Check if the field type is a dataclass and value is a dict
+            if hasattr(field_type, "__dataclass_fields__") and isinstance(value, dict):
+                kwargs[field_name] = dict_to_dataclass(field_type, value)
+            else:
+                kwargs[field_name] = value
+
+    return cls(**kwargs)
