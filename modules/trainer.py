@@ -140,7 +140,7 @@ class Trainer:
         """
         Save model checkpoint.
         """
-        filename = f"epoch_{epoch}.pth"
+        filename = f"epoch_{epoch+1}.pth"
         save_path = os.path.join(model_path, filename)
         torch.save(self.model.state_dict(), save_path)
 

@@ -33,6 +33,9 @@ class FootballDatasetConfig:
     # Whether to normalize bounding boxes (i.e., convert to 0–1 range)
     normalize_bbox: bool = True
 
+    # Whether to use additional dataset augmentation
+    use_augmentation: bool = False
+
 
 class FootballDataset(Dataset):
     """
@@ -106,7 +109,25 @@ class FootballDataset(Dataset):
         """
         transforms = []
 
-        # Apply image & bbox resizing if desired
+        # Apply augmentations
+        if self.config.use_augmentation:
+            transforms.extend(
+                [
+                    # Low risk transforms
+                    A.HorizontalFlip(p=0.5),
+                    A.VerticalFlip(p=0.25),  # Less common but safe to apply
+                    A.Affine(
+                        scale=(0.9, 1.1),  # Zoom In or Magnify
+                        rotate=(-10, 10),  # Rotate
+                        p=0.5,
+                    ),
+                    A.RandomBrightnessContrast(
+                        brightness_limit=0.1, contrast_limit=0.1, p=0.5
+                    ),
+                ]
+            )
+
+        # Resize image & bbox if desired
         if self.config.image_size is not None:
             transforms.append(
                 A.Resize(
@@ -130,7 +151,7 @@ class FootballDataset(Dataset):
         bbox_params = A.BboxParams(
             format="pascal_voc",
             label_fields=["category_ids"],
-            min_visibility=0.0,
+            min_visibility=0.3 if self.config.use_augmentation else 0.0,
         )
 
         return A.Compose(transforms, bbox_params=bbox_params)
