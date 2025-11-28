@@ -2,7 +2,7 @@ import os
 import gdown
 import zipfile
 import json
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 import torch
 import numpy as np
@@ -10,6 +10,7 @@ import pandas as pd
 from tqdm import tqdm
 from PIL import Image
 import matplotlib.pyplot as plt
+from tensorboard.backend.event_processing import event_accumulator
 
 from modules.experiment import ExperimentConfig
 
@@ -221,3 +222,92 @@ def dict_to_dataclass(cls, data):
                 kwargs[field_name] = value
 
     return cls(**kwargs)
+
+
+def load_training_info(log_dir: str, return_dataframes: bool = True) -> Dict:
+    """
+    Load loss and learning rate information from TensorBoard logs.
+
+    Args:
+        log_dir: Path to TensorBoard log directory
+        return_dataframes: If True, returns pandas DataFrames, else returns raw data
+
+    Returns:
+        Dictionary containing loss and learning rate data
+    """
+    ea = event_accumulator.EventAccumulator(
+        log_dir,
+        size_guidance={
+            event_accumulator.SCALARS: 0,
+        },
+    )
+
+    ea.Reload()
+
+    # Extract scalar tags
+    scalar_tags = ea.Tags()["scalars"]
+    print(f"Found scalar tags: {scalar_tags}")
+
+    loss_lr_data = {}
+
+    # Load training loss
+    if "Loss/train" in scalar_tags:
+        train_loss_data = ea.Scalars("Loss/train")
+        if return_dataframes:
+            loss_lr_data["train_loss"] = pd.DataFrame(
+                [
+                    {
+                        "epoch": event.step,
+                        "loss": event.value,
+                        "wall_time": event.wall_time,
+                    }
+                    for event in train_loss_data
+                ]
+            )
+        else:
+            loss_lr_data["train_loss"] = [
+                {"epoch": event.step, "loss": event.value, "wall_time": event.wall_time}
+                for event in train_loss_data
+            ]
+
+    # Load validation loss
+    if "Loss/valid" in scalar_tags:
+        valid_loss_data = ea.Scalars("Loss/valid")
+        if return_dataframes:
+            loss_lr_data["valid_loss"] = pd.DataFrame(
+                [
+                    {
+                        "epoch": event.step,
+                        "loss": event.value,
+                        "wall_time": event.wall_time,
+                    }
+                    for event in valid_loss_data
+                ]
+            )
+        else:
+            loss_lr_data["valid_loss"] = [
+                {"epoch": event.step, "loss": event.value, "wall_time": event.wall_time}
+                for event in valid_loss_data
+            ]
+
+    # Load learning rate
+    if "Learning_Rate" in scalar_tags:
+        lr_data = ea.Scalars("Learning_Rate")
+        if return_dataframes:
+            loss_lr_data["learning_rate"] = pd.DataFrame(
+                [
+                    {
+                        "epoch": event.step,
+                        "lr": event.value,
+                        "wall_time": event.wall_time,
+                    }
+                    for event in lr_data
+                ]
+            )
+        else:
+            loss_lr_data["learning_rate"] = [
+                {"epoch": event.step, "lr": event.value, "wall_time": event.wall_time}
+                for event in lr_data
+            ]
+
+    return loss_lr_data
