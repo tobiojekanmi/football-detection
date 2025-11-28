@@ -1,6 +1,12 @@
 import os
 import gdown
 import zipfile
+from typing import List
+
+import torch
+import numpy as np
+import pandas as pd
+from tqdm import tqdm
 
 
 def download_from_gdrive(link, output_path=None):
@@ -54,3 +60,70 @@ def unzip_file(zip_path: str, extract_to: str):
 
     with zipfile.ZipFile(zip_path, "r") as zip_ref:
         zip_ref.extractall(extract_to)
+
+
+def predict(
+    dataloader,
+    model,
+    device,
+    unnormalize_bbox: bool = True,
+) -> pd.DataFrame:
+    """
+    Run inference on a dataloader and return a DataFrame with:
+    image_path, GT bbox, predicted bbox.
+    """
+    model.eval()
+    model.to(device)
+
+    all_records: List[dict] = []
+
+    with torch.inference_mode():
+        for batch in tqdm(dataloader, desc="Predicting"):
+            image_paths, images, gt_bboxes = batch
+
+            images = images.to(device)
+
+            pred_bboxes = model(images)
+
+            gt_bboxes = gt_bboxes.cpu().numpy()
+            pred_bboxes = pred_bboxes.cpu().numpy()
+
+            for img_path, gt, pred, img_tensor in zip(
+                image_paths, gt_bboxes, pred_bboxes, images
+            ):
+                # Unnormalize if needed (assuming both gt and pred bboxes were normalized to [0,1])
+                if unnormalize_bbox:
+                    h, w = img_tensor.shape[1], img_tensor.shape[2]  # C, H, W
+
+                    gt = np.array(
+                        [
+                            gt[0] * w,
+                            gt[1] * h,
+                            gt[2] * w,
+                            gt[3] * h,
+                        ]
+                    )
+                    pred = np.array(
+                        [
+                            pred[0] * w,
+                            pred[1] * h,
+                            pred[2] * w,
+                            pred[3] * h,
+                        ]
+                    )
+
+                rec = {
+                    "image_path": img_path,
+                    "xmin": int(gt[0]),
+                    "ymin": int(gt[1]),
+                    "xmax": int(gt[2]),
+                    "ymax": int(gt[3]),
+                    "pred_xmin": int(pred[0]),
+                    "pred_ymin": int(pred[1]),
+                    "pred_xmax": int(pred[2]),
+                    "pred_ymax": int(pred[3]),
+                }
+
+                all_records.append(rec)
+
+    return pd.DataFrame(all_records)
