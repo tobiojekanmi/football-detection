@@ -311,3 +311,56 @@ def load_training_info(log_dir: str, return_dataframes: bool = True) -> Dict:
             ]
 
     return loss_lr_data
+
+
+def plot(df: pd.DataFrame, num_images: int):
+    """
+    Pick num_images randomly from df and visualize GT vs Pred bboxes.
+    """
+    # df = df.sample(n=num_images)
+    df = df.head(num_images)
+
+    for _, row in df.iterrows():
+        img_np = np.array(Image.open(row["image_path"]).convert("RGB"))
+
+        gt = [row["xmin"], row["ymin"], row["xmax"], row["ymax"]]
+        pred = [
+            row["pred_xmin"],
+            row["pred_ymin"],
+            row["pred_xmax"],
+            row["pred_ymax"],
+        ]
+
+        plt.figure(figsize=(8, 6))
+        plt.imshow(img_np)
+        ax = plt.gca()
+
+        # GT - green
+        ax.add_patch(
+            plt.Rectangle(  # type: ignore
+                (gt[0], gt[1]),
+                gt[2] - gt[0],
+                gt[3] - gt[1],
+                fill=False,
+                color="green",
+                linewidth=2,
+                label="GT",
+            )
+        )
+
+        # Pred - red
+        ax.add_patch(
+            plt.Rectangle(  # type: ignore
+                (pred[0], pred[1]),
+                pred[2] - pred[0],
+                pred[3] - pred[1],
+                fill=False,
+                color="red",
+                linewidth=2,
+                label="Pred",
+            )
+        )
+
+        plt.title(row["image_path"])
+        plt.legend()
+        plt.show()
