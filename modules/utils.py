@@ -1,12 +1,15 @@
 import os
 import gdown
 import zipfile
-from typing import List
 
 import torch
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
+from PIL import Image
+import matplotlib.pyplot as plt
+
+from typing import List, Optional
 
 
 def download_from_gdrive(link, output_path=None):
@@ -127,3 +130,56 @@ def predict(
                 all_records.append(rec)
 
     return pd.DataFrame(all_records)
+
+
+def plot_one(
+    image_path: str,
+    gt_bbox: np.ndarray,
+    pred_bbox: np.ndarray,
+    title: Optional[str] = None,
+):
+    """
+    Plots the given image, the groundtruth bounding box and the predicted bounding box.
+
+    Args:
+        image_path (str): The path of the image to plot.
+        gt_bbox (np.ndarray): The groundtruth bounding box.
+        pred_bbox (np.ndarray): The predicted bounding box.
+        title (Optional[str]): The title of the plot.
+    """
+
+    image = np.array(Image.open(image_path).convert("RGB"))
+    plt.figure(figsize=(8, 6))
+    plt.imshow(image)
+
+    ax = plt.gca()
+
+    # GT - green
+    ax.add_patch(
+        plt.Rectangle(  # type: ignore
+            (gt_bbox[0], gt_bbox[1]),
+            gt_bbox[2] - gt_bbox[0],
+            gt_bbox[3] - gt_bbox[1],
+            fill=False,
+            color="green",
+            linewidth=2,
+            label="GT",
+        )
+    )
+
+    # Pred - red
+    ax.add_patch(
+        plt.Rectangle(  # type: ignore
+            (pred_bbox[0], pred_bbox[1]),
+            pred_bbox[2] - pred_bbox[0],
+            pred_bbox[3] - pred_bbox[1],
+            fill=False,
+            color="red",
+            linewidth=2,
+            label="Pred",
+        )
+    )
+    if title is not None:
+        plt.title(title)
+    plt.legend()
+    plt.show()
