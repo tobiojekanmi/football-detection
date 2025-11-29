@@ -1,0 +1,82 @@
+{
+    "output_dir": "outputs",
+    "experiment_name": "exp_v2",
+    "train_dataset_config": {
+        "root_data_path": "./datasets/Soccerball",
+        "dataset_category": "train",
+        "image_size": [
+            1080,
+            1920
+        ],
+        "normalize_image": true,
+        "normalize_bbox": true,
+        "use_augmentation": true
+    },
+    "train_dataloader_config": {
+        "batch_size": 8,
+        "shuffle": true,
+        "num_workers": 2,
+        "pin_memory": true
+    },
+    "valid_dataset_config": {
+        "root_data_path": "./datasets/Soccerball",
+        "dataset_category": "valid",
+        "image_size": [
+            1080,
+            1920
+        ],
+        "normalize_image": true,
+        "normalize_bbox": true,
+        "use_augmentation": false
+    },
+    "valid_dataloader_config": {
+        "batch_size": 8,
+        "shuffle": true,
+        "num_workers": 2,
+        "pin_memory": false
+    },
+    "test_dataset_config": {
+        "root_data_path": "./datasets/Soccerball",
+        "dataset_category": "test",
+        "image_size": [
+            1080,
+            1920
+        ],
+        "normalize_image": true,
+        "normalize_bbox": true,
+        "use_augmentation": false
+    },
+    "test_dataloader_config": {
+        "batch_size": 8,
+        "shuffle": true,
+        "num_workers": 2,
+        "pin_memory": false
+    },
+    "model_config": {
+        "input_shape": [
+            3,
+            1080,
+            1920
+        ],
+        "out_channels": 96,
+        "num_res_blocks": 5,
+        "latent_dim": 64,
+        "output_dim": 4
+    },
+    "trainer_config": {
+        "device_type": "cuda",
+        "learning_rate": 0.001,
+        "weight_decay": 1e-05,
+        "num_epochs": 100,
+        "evaluate_every": 10,
+        "save_every": 10,
+        "use_scheduler": true,
+        "scheduler_step_size": 15,
+        "scheduler_gamma": 0.5,
+        "loss_type": "mse"
+    },
+    "evaluator_config": {
+        "iou_threshold": 0.5,
+        "device_type": "cuda"
+    }
+}

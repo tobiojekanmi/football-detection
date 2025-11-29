@@ -1,0 +1,8 @@
+{
+    "train_mean_iou": 0.026819097412669142,
+    "train_mean_accuracy": 0.0,
+    "validation_mean_iou": 0.0,
+    "validation_mean_accuracy": 0.0,
+    "test_mean_iou": 0.0,
+    "test_mean_accuracy": 0.0
+}
