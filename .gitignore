@@ -12,10 +12,10 @@ __pycache__/
 
 # Logs
 logs/
-outputs/
 
 # VS Code
 .vscode/
 
 # Dataset
 dataset
+datasets
